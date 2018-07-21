@@ -43,7 +43,7 @@ pipeline {
                 steps{
                     input  'Deploy to productuion'
                     milestone(1)
-                    withCredentials([usernamePassword(credentials: 'webserver_login' , usernameVariable: 'USERNAME' , passwordVariable: 'USERPASS')]){
+                    withCredentials([usernamePassword(credentialsId: 'webserver_login' , usernameVariable: 'USERNAME' , passwordVariable: 'USERPASS')]){
                         script{
                             sh "ssshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull persistence911/train:${env.BUILD_NUMBER}\""
                             try{
