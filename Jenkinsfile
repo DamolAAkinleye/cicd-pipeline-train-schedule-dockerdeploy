@@ -22,10 +22,10 @@ pipeline {
             }
         }
         stage('Push to Docker hub'){
-            steps{
-                when{
+                 when{
                     branch 'master'
                 }
+           
                 steps{
                     script{
                         docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login'){
@@ -35,6 +35,27 @@ pipeline {
                     }
                 }
             }
+
+            stage('DeployToProduction'){
+                when{
+                    branch 'master'
+                }
+                steps{
+                    input  'Deploy to productuion'
+                    milestone(1)
+                    withCredentials([usernamePassword(credentials: 'webserver_login' , usernameVariable: 'USERNAME' , passwordVariable: 'USERPASS')]){
+                        script{
+                            sh "ssshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker pull persistence911/train:${env.BUILD_NUMBER}\""
+                            try{
+                                  sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker stop train\""
+                                  sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker rm train\""   
+                            }catch(err){
+                                echo "error:  $err"
+                            }
+                             sh "sshpass -p '$USERPASS' -v ssh -o StrictHostKeyChecking=no $USERNAME@$prod_ip \"docker run --restart always -p 8080:8080 -d  persistence911/train\""
+                        }
+                    }
+                }
+            }
         }
     }
-}
