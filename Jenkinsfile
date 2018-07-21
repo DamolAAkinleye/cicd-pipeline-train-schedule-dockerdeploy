@@ -15,9 +15,9 @@ pipeline {
             steps{
                 script {
                     app = docker.build("persistence911/train")
-                    app.inside(
+                    app.inside{
                         sh "echo $(curl localhost:8080)"
-                    )
+                    }
                 }
             }
         }
